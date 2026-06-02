@@ -1,0 +1,8 @@
+builtin_interfaces/Time stamp
+string host_name
+float32 cpu_percentage
+float32 memory_percentage
+float32 memory_available
+float32 memory_total
+float64 net_send
+float64 net_recv
