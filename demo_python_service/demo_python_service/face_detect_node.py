@@ -7,6 +7,7 @@ from ament_index_python.packages import get_package_share_directory
 import os
 from cv_bridge import CvBridge
 import time 
+from rcl_interfaces.msg import SetParametersResult
 
 class FaceDetectNode(Node):
     def __init__(self):
@@ -14,10 +15,39 @@ class FaceDetectNode(Node):
         self.service_ = self.create_service(FaceDetector,'face_detect',
                                             self.detect_face_callback)
         self.bridge = CvBridge()
-        self.model = 'hog'
-        self.number_of_times_to_upsample = 1
+       
         self.default_image_path = os.path.join(get_package_share_directory('demo_python_service'),'resource/test.jpeg')
         self.get_logger().info(f"Server init finished")
+        
+        self.declare_parameter('number_of_times_to_upsample',1)
+        self.declare_parameter('model','hog')
+        
+        self.model = self.get_parameter('model').value
+        self.number_of_times_to_upsample = self.get_parameter('number_of_times_to_upsample').value
+        
+        self.add_on_set_parameters_callback(self.parameter_callback)
+        
+    
+    # def parameter_callback(self,parameters):
+        
+    #     for parameter in parameters:
+    #         self.get_logger().info(f"{parameter.name}->{parameter.value}")
+    #         if parameter.name == 'number_of_times_to_upsample':
+    #             self.number_of_times_to_upsample = parameter.value
+    #         if parameter.name == 'model':
+    #             self.model = parameter.value
+                
+    #     return SetParametersResult(Successful=True)
+    
+    
+    def parameter_callback(self, params):
+        for param in params:
+            if param.name == 'model' and param.value in ['hog', 'cnn']:
+                self.model = param.value
+                self.get_logger().info(f'Model changed to {self.model}')
+        return SetParametersResult(Successful=True)
+            
+            
         
     def detect_face_callback(self,request,response):
         
