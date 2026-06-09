@@ -113,4 +113,6 @@ endif()
 install(TARGETS Service_Turtle_Control Client_Turtle_Control
   DESTINATION lib/${PROJECT_NAME})
 
+install(DIRECTORY launch
+DESTINATION share/${PROJECT_NAME})
 ament_package()

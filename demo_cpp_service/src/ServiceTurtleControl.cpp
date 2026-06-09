@@ -4,9 +4,12 @@
 #include "iostream"
 #include <chrono>
 #include "demo_cpp_service/srv/turtle_control.hpp"
+#include "rcl_interfaces/msg/set_parameters_result.hpp"
 
 
 using ServiceTurtleControl = demo_cpp_service::srv::TurtleControl;
+using SetParametersResult = rcl_interfaces::msg::SetParametersResult;
+
 using namespace std::chrono_literals;
 
 
@@ -14,6 +17,8 @@ class TurtleControlNode: public rclcpp::Node
 {
 
 private:
+
+    OnSetParametersCallbackHandle::SharedPtr parameter_callback_handle_;
     rclcpp::Service<ServiceTurtleControl>::SharedPtr ServiceTurtleController_;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_;
     rclcpp::TimerBase::SharedPtr timer_;
@@ -23,12 +28,62 @@ private:
     float y_;
 
     
-    float x_target;
-    float y_target;
-    float pre_angle;
-    float pre_vel;
+    float x_target{10};
+    float y_target{10};
+    float k_{1.0};
+    float max_velocity_{3.0};
 
 public:
+
+    explicit TurtleControlNode(const std::string & node_name):Node(node_name)
+        {
+            
+            parameter_callback_handle_ = this->add_on_set_parameters_callback([&](const std::vector<rclcpp::Parameter> &parameters){
+                rcl_interfaces::msg::SetParametersResult result;
+                result.successful = true;
+                for(const auto &parameter : parameters){
+                   
+                    RCLCPP_INFO(this->get_logger(),"Update the parameter %s=%f",parameter.get_name().c_str(),parameter.as_double());
+                    if(parameter.get_name()=="k"){
+                        k_ = parameter.as_double();
+                    }
+                    if(parameter.get_name()=="max_velocity"){
+                        max_velocity_ = parameter.as_double();
+                    }
+                    
+                }
+                return result;
+            });
+            this->declare_parameter("k",1.0);
+            this->declare_parameter("max_velocity",1.0);
+            this->get_parameter("k",k_);
+            this->get_parameter("max_velocity",max_velocity_);
+
+            RCLCPP_INFO(this->get_logger(), "Parameters declared: k=%f, max_velocity=%f", k_, max_velocity_);
+
+            ServiceTurtleController_ = this->create_service<ServiceTurtleControl>("Controller",[&](const ServiceTurtleControl::Request::SharedPtr request,ServiceTurtleControl::Response::SharedPtr response){
+                if((request->target_x&&request->target_x<12)&&(request->target_y&&request->target_y<12))
+                {
+                    this->x_target = request->target_x;
+                    this->y_target = request->target_y;
+
+                    response->result = ServiceTurtleControl::Response::SUCCESS;
+                }else{
+                    response->result = ServiceTurtleControl::Response::FAIL;
+                }
+
+
+                
+                
+            });
+            publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/turtle1/cmd_vel",10);
+            subscriber_ = this->create_subscription<turtlesim::msg::Pose>("/turtle1/pose",10,std::bind(&TurtleControlNode::get_pose_callback,this,std::placeholders::_1));
+            // timer_ = this->create_wall_timer(100ms,std::bind(&TurtleControlNode::timer_callback,this));
+            // timer_ = this->create_wall_timer(1000ms,[this](){this->timer_callback();}
+
+        
+        
+        }
 
     void get_pose_callback(const turtlesim::msg::Pose::SharedPtr pose){
 
@@ -69,31 +124,7 @@ public:
         // pre_vel = msg.linear.x;
   
     }
-    explicit TurtleControlNode(const std::string & node_name):Node(node_name)
-    {
-        ServiceTurtleController_ = this->create_service<ServiceTurtleControl>("Controller",[&](const ServiceTurtleControl::Request::SharedPtr request,ServiceTurtleControl::Response::SharedPtr response){
-            if((request->target_x&&request->target_x<12)&&(request->target_y&&request->target_y<12))
-            {
-                this->x_target = request->target_x;
-                this->y_target = request->target_y;
-
-                response->result = ServiceTurtleControl::Response::SUCCESS;
-            }else{
-                response->result = ServiceTurtleControl::Response::FAIL;
-            }
-            
-            
-        });
-        publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/turtle1/cmd_vel",10);
-        subscriber_ = this->create_subscription<turtlesim::msg::Pose>("/turtle1/pose",10,std::bind(&TurtleControlNode::get_pose_callback,this,std::placeholders::_1));
-        // timer_ = this->create_wall_timer(100ms,std::bind(&TurtleControlNode::timer_callback,this));
-        // timer_ = this->create_wall_timer(1000ms,[this](){this->timer_callback();}
-
-        x_target = 10;
-        y_target = 10;
-        pre_angle = 0;
-        pre_vel = 1;
-    }
+    
         
         
     
