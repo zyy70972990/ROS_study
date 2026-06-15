@@ -19,7 +19,7 @@ private:
 public:
     TFListener():Node("tf_listener"){
         this->buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
-        listener_ = std::make_shared<tf2_ros::TransformListener>(*buffer_,this);
+        listener_ = std::make_shared<tf2_ros::TransformListener>(*buffer_);
         timer_ = this->create_wall_timer(100ms,std::bind(&TFListener::getTransform,this));
         
     }

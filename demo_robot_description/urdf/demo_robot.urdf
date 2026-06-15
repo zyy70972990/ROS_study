@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot name="Demo_robot_1">
+    <!-- robot body -->
+    <link name="base_link">
+        <!-- component visual description -->
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <!-- geometric description -->
+            <geometry>
+                <cylinder radius="0.1" length="0.12"/>
+            </geometry>
+
+            <!-- material color -->
+            <material name="white_semi_transparent">
+                <color rgba="1.0 1.0 1.0 0.5"/>
+            </material>        
+        </visual>
+    </link>
+
+    <!-- robot imu sensor -->
+    
+    <link name="imu_link">
+        <!-- component visual description -->
+        <visual>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <!-- geometric description -->
+            <geometry>
+                <box size="0.02 0.02 0.02"/>
+            </geometry>
+
+            <!-- material color -->
+            <material name="black_semi_transparent">
+                <color rgba="0.0 0.0 0.0 0.5"/>
+            </material>        
+        </visual>
+    </link>
+
+    <!-- robot joint -->
+    <joint name="imu_joint" type="fixed">
+        <origin xyz="0.0 0.0 0.07" rpy="0.0 0.0 0.0"/>
+        <parent link="base_link"/>
+        <child link="imu_link"/>
+    </joint>
+</robot>
+
+
