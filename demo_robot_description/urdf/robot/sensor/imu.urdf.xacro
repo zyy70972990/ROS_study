@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find demo_robot_description)/urdf/robot/common_inertial.xacro"/>
+    <xacro:macro name="imu_xacro" params="xyz">
+        <!-- robot imu sensor -->
+        <link name="imu_link">
+            <!-- component visual description -->
+            <visual>
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <!-- geometric description -->
+                <geometry>
+                    <box size="0.02 0.02 0.02"/>
+                </geometry>
+
+                <!-- material color -->
+                <material name="black_semi_transparent">
+                    <color rgba="0.0 0.0 0.0 0.5"/>
+                </material>        
+            </visual>
+
+            <collision>
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <!-- geometric description -->
+                <geometry>
+                    <box size="0.02 0.02 0.02"/>
+                </geometry>
+
+                <!-- material color -->
+                <material name="black_semi_transparent">
+                    <color rgba="0.0 0.0 0.0 0.5"/>
+                </material>        
+                
+            </collision>
+
+            <xacro:box_inertia m="0.05" w="0.02" h="0.02" d="0.02"/>
+        </link>
+
+            <!-- robot joint -->
+        <joint name="imu_joint" type="fixed">
+            <origin xyz="${xyz}" rpy="0.0 0.0 0.0"/>
+            <parent link="base_link"/>
+            <child link="imu_link"/>
+        </joint>
+    </xacro:macro>
+    
+
+   
+</robot>
+
+
